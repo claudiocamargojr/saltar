@@ -1,4 +1,6 @@
-__author__ = 'Claudio'
+__author__ = 'SALTAR'
+__version__ = '1.0'
+
 
 import optparse
 from socket import *
