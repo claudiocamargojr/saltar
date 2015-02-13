@@ -20,7 +20,7 @@ def detalhaInfoIP(ip):
             geoLocalizacao=pais
         return geoLocalizacao
     except Exception as e:
-        return 'Nao registrado'
+        print ('Nao registrado')
 
 def exibirPcap(pcap):
     for (ts, buf) in pcap:
