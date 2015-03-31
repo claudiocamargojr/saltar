@@ -1,0 +1,9 @@
+# Root project information
+sonar.projectKey=Gerador_massa_testes-SIAOI
+sonar.projectName=Gerador de massa de testes do SIAOI
+sonar.projectVersion=1.0
+ 
+# Some properties that will be inherited by the modules
+sonar.sources=src/
+sonar.sourceEncoding=UTF-8
+sonar.language=java

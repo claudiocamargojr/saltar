@@ -1,0 +1,477 @@
+package br.gov.caixa.peopi.io;
+
+import br.gov.caixa.peopi.regra.Cliente;
+import br.gov.caixa.peopi.regra.Cnpj;
+import br.gov.caixa.peopi.regra.Cpf;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
+/**
+ * @author c071526
+ *
+ */
+public class Arquivo {
+	private static String message;
+	private int contAnalises;
+	String tipoMovimento;
+	private static int qtdeSubstituicao = 0;
+	private static int numberLine = 1;
+	private static String[][] substituicao = new String[5000][10];
+
+	final static int pCpCn03i = 62;
+	final static int pCpCn03f = 76;
+	final static int pCpCn11i = 60;
+	final static int pCpCn11f = 74;
+	final static int pCpPart03i = 89;
+	final static int pCpPart03f = 103;
+
+	int posArray = 0;
+
+	/**
+	 * @param rfl
+	 * @return
+	 */
+	private String trataLinhaOrigem(String rfl, int numberLine) {
+		String linhaTratada = "";
+
+		StringBuilder strEntrada = new StringBuilder(rfl);
+
+		boolean icFind = false;
+
+		String tipoMovimento = strEntrada.substring(0, 2).trim();
+		if (tipoMovimento.matches("03")) {
+
+			int pIni = 0;
+			int pFin = 0;
+
+			if (tipoMovimento.matches("03")) {
+				pIni = pCpCn03i;
+				pFin = pCpCn03f;
+			}
+
+			System.out.println("Qtde Substituicao: " + qtdeSubstituicao);
+
+			if (qtdeSubstituicao > 0) {
+				if (!icFind) {
+					for (int i = 0; i <= qtdeSubstituicao; i++) {
+						if (strEntrada.substring(pIni, pFin).equals(
+								getSubstituicao()[i][1])) {
+							if (strEntrada.substring(0, 1).equals(
+									getSubstituicao()[i][0])) {
+								icFind = true;
+
+								strEntrada.replace(pIni, pFin,
+										getSubstituicao()[i][2]);
+
+								strEntrada.replace(pIni, pFin,
+										getSubstituicao()[i][3]);
+
+								strEntrada.replace(429, 498,
+										getSubstituicao()[i][7]);
+
+								linhaTratada = regrasMov(tipoMovimento,
+										strEntrada, numberLine).toString();
+							}
+						}
+					}
+				}
+			}
+			if (!icFind) {
+
+				String cpfCnpj = strEntrada.substring(pIni, pFin);
+				substituicao[posArray][1] = cpfCnpj;
+				if (Cpf.verificaCpf(substituicao[posArray][1])) {
+					substituicao[posArray][2] = Cpf.geraNovoCpf();
+				} else {
+					substituicao[posArray][2] = Cnpj.gerarNovoCnpj();
+				}
+
+				String contrato = strEntrada.substring(19, 31);
+				String sequencialNome = strEntrada.substring(4, 5);
+				substituicao[posArray][5] = contrato;
+
+				String nomeCliente = strEntrada.substring(429, 498).trim();
+				substituicao[posArray][6] = nomeCliente;
+				substituicao[posArray][7] = Cliente.descCliente(
+						"CLIENTE " + sequencialNome, contrato).toString();
+
+				System.out.println("CPF/CNPJ antigo: "
+						+ substituicao[posArray][1] + " | CPF/CNPJ novo: "
+						+ substituicao[posArray][2]);
+
+				qtdeSubstituicao++;
+
+				// Realiza a substituição do CPF/CNPJ do principal
+
+				if (tipoMovimento.matches("03")) {
+					strEntrada.replace(pIni, pFin,
+							getSubstituicao()[posArray][2]); // CPF
+					// ou
+					// CNPJ
+					// gerado
+					strEntrada
+							.replace(429, 498, getSubstituicao()[posArray][7]);
+				} 
+				
+				posArray++;
+
+				linhaTratada = regrasMov(
+						tipoMovimento,
+						substituiCpf(pCpPart03i, pCpPart03f, tipoMovimento,
+								strEntrada), numberLine).toString();
+			}
+
+		} else {
+
+			if (tipoMovimento.matches("11")) {
+				linhaTratada = regrasMov(
+						tipoMovimento,
+						substituiCpf(pCpCn11i, pCpCn11f, tipoMovimento,
+								strEntrada), numberLine).toString();
+			} else {
+
+				System.out
+						.println("Linha "
+								+ numberLine
+								+ " não foi tratada, pois não possui regra para o tipo de movimento identificado");
+				linhaTratada = regrasMov(
+						tipoMovimento,
+						substituiCpf(pCpPart03i, pCpPart03f, tipoMovimento,
+								strEntrada), numberLine).toString();
+			}
+		}
+
+		return linhaTratada;
+	}
+
+	/**
+	 * Método que substitui o CPF/CNPJ vinculado, buscando a correspondência do
+	 * mesmo no Array de substituição
+	 * 
+	 * @param posicaoInicial
+	 *            posição inicial para captura do CPF/CNPJ vinculado
+	 * @param posicaoFinal
+	 *            posição final para captura do CPF/CNPJ vinculado
+	 * @return Movimento tratado
+	 */
+	private static StringBuilder substituiCpf(int posicaoInicial,
+			int posicaoFinal, String tipoMovimento, StringBuilder strEntrada) {
+
+		String cpfCnpjVinculado = strEntrada.substring(posicaoInicial,
+				posicaoFinal);
+		if (!cpfCnpjVinculado.equals("0000000000000")) {
+			for (int i = 0; i <= qtdeSubstituicao; i++) {
+				if (cpfCnpjVinculado.equals(substituicao[i][1])) {
+
+					strEntrada.replace(posicaoInicial, posicaoFinal,
+							substituicao[i][2]);
+
+					System.out.println("CPF/CNPJ vinculado antigo: "
+							+ cpfCnpjVinculado + " | CPF/CNPJ vinculado novo: "
+							+ substituicao[i][2]);
+				}
+			}
+		}
+
+		return strEntrada;
+	}
+
+	/**
+	 * @param tipoMovimento
+	 * @param strEntrada
+	 * @return
+	 */
+	private static StringBuilder regrasMov(String tipoMovimento,
+			StringBuilder strEntrada, int numberLine) {
+		StringBuilder str = new StringBuilder(strEntrada);
+		System.out.println("Linha " + numberLine + " sem tratamento: " + str
+				+ " |   Quantidade de caracteres: " + str.length() + "\n");
+		if (tipoMovimento.matches("03")) {
+			str.replace(76, 89, "9999999999999"); // identificacao cliente
+
+			str.replace(152, 168, "9999999999999999"); //conta de crédito
+			
+			str.replace(179, 195, "9999999999999999"); //conta vinculada
+			
+			str.replace(206, 222, "9999999999999999"); //número conta movimento
+			
+			str.replace(233, 249, "9999999999999999"); //conta corrente de cobrança
+			
+			str.replace(281, 293, "999999999999"); //matrícula mutuário convênio
+
+			str.replace(345, 370, "9999999999999999999999999");
+
+			str.replace(511, 525, "99999999999999");
+
+			str.replace(531, 541, "9999999999");
+
+			str.replace(649, 662, "9999999999999");
+
+			str.replace(663, 668, "99999");
+
+			str.replace(671, 674, "0011");
+
+			str.replace(675, 684, "9999999999");
+
+			str.replace(685, 688, "0011");
+
+			str.replace(689, 698, "9999888888");
+
+			str.replace(699, 702, "9999");
+
+			str.replace(703, 706, "0011");
+
+			str.replace(707, 716, "9999888888");
+
+			// 776
+			if (!str.substring(717, 776).trim().equals("")) {
+				str.replace(717, 776,
+						"emaildescaracterizado@caixa.gov.br                  ");
+			}
+
+		} else if (tipoMovimento.matches("09")) {
+			str.replace(82, 131,
+					"Logradouro do imovel                              ");
+
+			str.replace(132, 137, "99999");
+
+			str.replace(137, 151, "Complemento    ");
+
+			str.replace(152, 165, "Bairro        ");
+
+			str.replace(166, 210, "Cidade                                   ");
+
+			str.replace(211, 212, "DF");
+
+			str.replace(213, 222, "12345678");
+
+			str.replace(231, 250, "                   ");
+
+			str.replace(363, 399, "000000000000000000000000000000000000");
+
+		} else if (tipoMovimento.matches("10")) {
+			str.replace(
+					62,
+					761,
+					"Esta é a descrição do imóvel                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ");
+		} else if (tipoMovimento.matches("11")) {
+			str.replace(94, 143,
+					"Logradouro da correspondência                     ");
+
+			str.replace(144, 148, "99999");
+
+			str.replace(149, 163, "Complemento    ");
+
+			str.replace(164, 177, "Bairro        ");
+
+			str.replace(178, 222,
+					"Cidade                                       ");
+
+			str.replace(223, 224, "DF");// UF
+
+			str.replace(225, 239, "99999999");
+
+			str.replace(238, 298,
+					"emaildecorrespondencia@caixa.gov.br                         ");
+		} else {
+			tipoMovimento.matches("12");
+		}
+		System.out.println("Linha " + numberLine + " com tratamento: " + str
+				+ "|   Quantidade de caracteres: " + str.length() + "\n");
+		return str;
+	}
+
+	/**
+	 * @param filecontent
+	 * @param arquivoDestino
+	 * @param tamanhoArquivo
+	 * @return
+	 */
+	public String geraMassaTestes(InputStream filecontent,
+			String arquivoDestino, long tamanhoArquivo) {
+		try {
+			InputStreamReader r = new InputStreamReader(filecontent);
+			BufferedReader rfl = new BufferedReader(r);
+			BufferedReader cfl = new BufferedReader(r);
+			System.out.println("Encoding: " + r.getEncoding());
+
+			FileWriter fw = new FileWriter(arquivoDestino, true);
+			PrintWriter pw = new PrintWriter(fw);
+			FileOutputStream fos = new FileOutputStream(arquivoDestino);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos,
+					r.getEncoding()));
+
+			File fl = new File(arquivoDestino);
+			if (!fl.exists()) {
+				fl.createNewFile();
+				System.out.println("Arquivo criado com sucesso");
+			} else {
+				System.out.println("Arquivo ja existe");
+			}
+			String linha = rfl.readLine();
+			while (!linha.equals(null)) {
+				if (numberLine == 1) {
+					bw.write(linha);
+					bw.newLine();
+					bw.flush();
+					linha = rfl.readLine();
+				} else {
+					try {
+						if (!identificaQuebraLinha(linha)) {
+							bw.write(trataLinhaOrigem(linha, numberLine));
+							bw.newLine();
+							bw.flush();
+							linha = rfl.readLine();
+						} else {
+							linha = rfl.readLine();
+							bw.flush();
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.out.println("Erro na gravação do arquivo");
+						message = "Erro ao gravar o arquivo em disco";
+					}
+				}
+				numberLine += 1;
+			}
+			pw.close();
+			bw.close();
+			r.close();
+			rfl.close();
+			closeQuietly(fos);
+			fos = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			System.gc();
+			qtdeSubstituicao = 0;
+			try {
+				Arrays.fill(substituicao, "");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+		return message;
+	}
+
+	/**
+	 * Fecha o arquivo em uso pelo processo
+	 * 
+	 * @param out
+	 */
+	static void closeQuietly(FileOutputStream out) {
+		try {
+			out.flush();
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Identifica quebras de linha
+	 * 
+	 * @param linha
+	 * @return
+	 */
+	private static boolean identificaQuebraLinha(String linha) {
+		boolean ignorarLinha = false;
+		if (linha.substring(0, 1).equals("…")) {
+			ignorarLinha = true;
+		}
+		return ignorarLinha;
+	}
+
+	/**
+	 * Método que modifica a conta de crédito
+	 * 
+	 * @param conta
+	 * @return
+	 */
+	private static String modificaContaCredito(String conta) {
+		String[][] contaSubstituicao = new String[2][500];
+		String novaConta = null;
+		contaSubstituicao[0][0] = "0";
+		contaSubstituicao[0][1] = "0";
+		boolean icEncontrado = false;
+		int indice = 0;
+		if (numberLine > 1) {
+			for (int i = 0; i <= contaSubstituicao.length - 1; i++) {
+				if (conta.equals(contaSubstituicao[i][0])) {
+					novaConta = contaSubstituicao[i][1];
+					icEncontrado = true;
+					break;
+				}
+				indice = i;
+			}
+			if (!icEncontrado) {
+				contaSubstituicao[indice][0] = conta;
+				contaSubstituicao[indice][1] = geraNovaConta(conta.length());
+				novaConta = contaSubstituicao[indice][1];
+			}
+		}
+		return novaConta;
+	}
+
+	public static String geraNovaConta(int qtdePosicoes) {
+		String contaGerada = "";
+		for (int i = 0; i <= qtdePosicoes - 1; i++) {
+			contaGerada = contaGerada
+					+ String.valueOf((int) (Math.random() * 10.0D));
+		}
+		return contaGerada;
+	}
+
+	public static void criarDiretorioDestino() {
+		File theDir = new File("Desenvolvimento");
+		if (!theDir.exists()) {
+			System.out.println("creating directory: " + theDir.getName());
+			boolean result = false;
+			try {
+				theDir.mkdir();
+				result = true;
+			} catch (SecurityException se) {
+				se.printStackTrace();
+			}
+			if (result) {
+				System.out.println("Diretório criado");
+			}
+		}
+	}
+
+	public int getContAnalises() {
+		return this.contAnalises;
+	}
+
+	public void setContAnalises(int contAnalises) {
+		this.contAnalises = contAnalises;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		message = message;
+	}
+
+	public static String[][] getSubstituicao() {
+		return substituicao;
+	}
+
+	public void setSubstituicao(String[][] substituicao) {
+		this.substituicao = substituicao;
+	}
+}

@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+extraProperties=sonar.host.url\=http\://df7390et598\:9000\r\nsonar.jdbc.password\=\r\nsonar.jdbc.username\=root\r\nsonar.jdbc.url\=jdbc\:mysql\://df7390et598\:3306/sonar?useUnicode\=true&characterEncoding\=utf8
+projectKey=br.gov.caixa.peopi\:TestesHabitacao
+serverUrl=http\://localhost\:9000
+version=2

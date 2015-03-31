@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="WebApp_ID" version="2.5">
+	<display-name>TestesSIAOI</display-name>
+	<welcome-file-list>
+		<welcome-file>/jsp/index.html</welcome-file>
+		<welcome-file>/jsp/index.htm</welcome-file>
+		<welcome-file>/jsp/index.jsp</welcome-file>
+		<welcome-file>/jsp/default.html</welcome-file>
+		<welcome-file>/jsp/default.htm</welcome-file>
+		<welcome-file>/jsp/default.jsp</welcome-file>
+	</welcome-file-list>
+	<servlet>
+		<description></description>
+		<display-name>uploadFile</display-name>
+		<servlet-name>uploadFile</servlet-name>
+		<servlet-class>br.gov.caixa.peopi.servlet.uploadFile</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>uploadFile</servlet-name>
+		<url-pattern>/uploadFile</url-pattern>
+	</servlet-mapping>
+</web-app>

@@ -1,0 +1,6 @@
+br\gov\caixa\peopi\regra\Cliente.class
+br\gov\caixa\peopi\regra\Cpf.class
+br\gov\caixa\peopi\regra\Cnpj.class
+br\gov\caixa\peopi\io\MassaTestes.class
+br\gov\caixa\peopi\io\Arquivo.class
+br\gov\caixa\peopi\servlet\uploadFile.class

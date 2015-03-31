@@ -1,0 +1,68 @@
+package br.gov.caixa.peopi.regra;
+
+import br.gov.caixa.peopi.utils.StringUtil;
+
+public class Cnpj {
+	public static String gerarNovoCnpj() {
+		String cnpjGerado = "";
+		for (int i = 0; i <= 11; i++) {
+			cnpjGerado = cnpjGerado
+					+ String.valueOf((int) (Math.random() * 10.0D));
+		}
+		cnpjGerado = StringUtil.adicionaEsquerda(cnpjGerado.concat(calculaDv(cnpjGerado.trim())),13);
+		
+		return cnpjGerado;
+	}
+
+	private static String calculaDv(String cnpj) {
+		int fator1 = 5;
+
+		int fator2 = 6;
+
+		int pDv = 0;
+		int sDv = 0;
+		for (int i = 0; i <= 11; i++) {
+			int n = Integer.valueOf(cnpj.substring(i, i + 1)).intValue();
+			pDv += n * fator1;
+			fator1--;
+			if (fator1 == 2) {
+				fator1 += 7;
+			}
+		}
+		if (pDv % 11 < 2) {
+			pDv = 0;
+		} else {
+			pDv = 11 - pDv % 11;
+		}
+		String cpfDv = cnpj.concat(String.valueOf(pDv));
+		for (int i = 0; i <= 12; i++) {
+			int n = Integer.valueOf(cpfDv.substring(i, i + 1)).intValue();
+			sDv += n * fator2;
+			fator2--;
+			if (fator2 == 2) {
+				fator2 += 7;
+			}
+		}
+		if (sDv % 11 < 2) {
+			sDv = 0;
+		} else {
+			sDv = 11 - sDv % 11;
+		}
+		return String.valueOf(pDv).concat(String.valueOf(sDv));
+	}
+
+	/**
+	 * Verifica se o número informado é um CNPJ
+	 * 
+	 * @param cnpj
+	 * @return
+	 */
+	public static boolean verificaCnpj(String cnpj) {
+		String dv = cnpj.substring(cnpj.length() - 2, cnpj.length());
+		String numeros = cnpj.substring(0, cnpj.length() - 3);
+		if (dv.equals(calculaDv(numeros))) {
+			return true;
+		}
+		return false;
+	}
+}

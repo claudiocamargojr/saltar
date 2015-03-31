@@ -1,0 +1,7 @@
+package br.gov.caixa.peopi.regra;
+
+public class Cliente {
+	public static String descCliente(String nomeCliente, String numContrato) {
+		return nomeCliente.concat(" ").concat(numContrato);
+	}
+}

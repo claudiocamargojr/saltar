@@ -1,0 +1,6 @@
+package br.gov.caixa.peopi.io;
+
+public class MassaTestes {
+	public static void main(String[] args) {
+	}
+}

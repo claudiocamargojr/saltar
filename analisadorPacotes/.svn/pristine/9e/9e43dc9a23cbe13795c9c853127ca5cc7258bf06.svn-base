@@ -1,0 +1,56 @@
+package br.gov.caixa.peopi.regra;
+
+public class Cpf {
+	private String cpf;
+
+	public static String geraNovoCpf() {
+		String cpfGerado = "";
+		for (int i = 0; i <= 8; i++) {
+			cpfGerado = cpfGerado
+					+ String.valueOf((int) (Math.random() * 10.0D));
+		}
+		cpfGerado = cpfGerado.concat(calculaDv(cpfGerado.trim()));
+		while(cpfGerado.length()<=13){
+			cpfGerado="0".concat(cpfGerado);
+		}
+		return cpfGerado;
+	}
+
+	private static String calculaDv(String cpf) {
+		int fator10 = 10;
+		int fator11 = 11;
+		int pDv = 0;
+		int sDv = 0;
+		for (int i = 0; i <= 8; i++) {
+			int n = Integer.valueOf(cpf.substring(i, i + 1)).intValue();
+			pDv += n * fator10;
+			fator10--;
+		}
+		if (pDv % 11 < 2) {
+			pDv = 0;
+		} else {
+			pDv = 11 - pDv % 11;
+		}
+		String cpfDv = cpf.concat(String.valueOf(pDv));
+		for (int i = 0; i <= 9; i++) {
+			int n = Integer.valueOf(cpfDv.substring(i, i + 1)).intValue();
+			sDv += n * fator11;
+			fator11--;
+		}
+		if (sDv % 11 < 2) {
+			sDv = 0;
+		} else {
+			sDv = 11 - sDv % 11;
+		}
+		return String.valueOf(pDv).concat(String.valueOf(sDv));
+	}
+
+	public static boolean verificaCpf(String cpf) {
+		String dv = cpf.substring(cpf.length() - 2, cpf.length());
+		String numeros = cpf.substring(3, cpf.length() - 2);
+		if (dv.equals(calculaDv(numeros))) {
+			return true;
+		}
+		return false;
+	}
+}

@@ -1,0 +1,16 @@
+package br.gov.caixa.peopi.regra;
+
+public class Cliente {
+	public static StringBuffer descCliente(String nomeCliente, String numContrato) {
+		StringBuffer cliente=new StringBuffer();
+		
+		cliente.append(nomeCliente.concat(" ").concat(numContrato));
+		int qtdeEspacos=68-cliente.length();
+		for (int i=0;i<=qtdeEspacos;i++) {
+			cliente.append(" ");
+		}
+		
+		
+		return cliente;
+	}
+}

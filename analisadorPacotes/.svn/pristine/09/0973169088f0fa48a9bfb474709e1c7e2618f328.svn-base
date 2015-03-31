@@ -1,0 +1,437 @@
+package br.gov.caixa.peopi.io;
+
+import br.gov.caixa.peopi.regra.Cliente;
+import br.gov.caixa.peopi.regra.Cnpj;
+import br.gov.caixa.peopi.regra.Cpf;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
+/**
+ * @author c071526
+ *
+ */
+public class Arquivo {
+	private static String message;
+	private int contAnalises;
+	String tipoMovimento;
+	private static int qtdeSubstituicao=0;
+	private static int numberLine = 1;
+	private static String[][] substituicao = new String[5000][10];
+	
+	
+	/**
+	 * @param rfl
+	 * @return
+	 */
+	private static String trataLinhaOrigem(String rfl) {
+		String linhaTratada = "";
+
+		int posArray = 0;
+
+		StringBuilder strEntrada = new StringBuilder(rfl);
+
+		boolean icFind = false;
+
+		String tipoMovimento = strEntrada.substring(0, 2).trim();
+		if (tipoMovimento.matches("03")) {
+			
+			System.out.println("Qtde Substituicao: " + qtdeSubstituicao);
+			
+			if (qtdeSubstituicao > 0) {
+				if (!icFind) {
+					for (int i = 0; i <= qtdeSubstituicao; i++) {
+						if (strEntrada.substring(62, 75).equals(
+								getSubstituicao()[i][1])) {
+							if (strEntrada.substring(0, 1).equals(
+									getSubstituicao()[i][0])) {
+								icFind = true;
+
+								strEntrada.replace(62, 75, getSubstituicao()[i][2]);
+
+								strEntrada.replace(89, 102, getSubstituicao()[i][3]);
+
+								strEntrada
+										.replace(429, 498, getSubstituicao()[i][7]);
+
+								linhaTratada = regrasMov(tipoMovimento,
+										strEntrada).toString();
+							}
+						}
+					}
+				}
+			}
+			if (!icFind) {
+				String cpfCnpj = strEntrada.substring(62, 75);
+				substituicao[posArray][1] = cpfCnpj;
+				if (Cpf.verificaCpf(substituicao[posArray][1])) {
+					substituicao[posArray][2] = Cpf.geraNovoCpf();
+				} else {
+					substituicao[posArray][2] = Cnpj.gerarNovoCnpj();
+				}
+				String cpfCnpjVinculado = strEntrada.substring(89, 102);
+
+				substituicao[posArray][3] = cpfCnpjVinculado;
+				if (Cpf.verificaCpf(cpfCnpj)) {
+					substituicao[posArray][4] = Cpf.geraNovoCpf();
+				} else {
+					substituicao[posArray][4] = Cnpj.gerarNovoCnpj();
+				}
+				String contrato = strEntrada.substring(19, 31);
+				String sequencialNome = strEntrada.substring(4, 5);
+				substituicao[posArray][5] = contrato;
+
+				String nomeCliente = strEntrada.substring(429, 498).trim();
+				substituicao[posArray][6] = nomeCliente;
+				substituicao[posArray][7] = Cliente.descCliente("CLIENTE "
+						+ sequencialNome, contrato);
+
+				qtdeSubstituicao += 1;
+
+				strEntrada.replace(62, 75, getSubstituicao()[posArray][2]);
+
+				strEntrada.replace(89, 102, getSubstituicao()[posArray][3]);
+
+				strEntrada.replace(429, 498, getSubstituicao()[posArray][7]);
+
+				linhaTratada = regrasMov(tipoMovimento, strEntrada).toString();
+
+				posArray++;
+			}
+		} else if (strEntrada.substring(0, 1).matches("11")) {
+			if (substituicao.length > 0) {
+				if (!strEntrada.substring(60, 73).matches("00000000000000")) {
+					if (!icFind) {
+						for (int i = 0; i <= substituicao.length; i++) {
+							if (strEntrada.substring(60, 73).matches(
+									getSubstituicao()[i][1])) {
+								if (strEntrada.substring(0, 1).matches(
+										getSubstituicao()[i][0])) {
+									icFind = true;
+
+									strEntrada.replace(60, 73,
+											getSubstituicao()[i][2]);
+
+									linhaTratada = regrasMov(tipoMovimento,
+											strEntrada).toString();
+								}
+							}
+						}
+					}
+					if (!icFind) {
+						String cpfCnpj = strEntrada.substring(60, 74);
+
+						getSubstituicao()[posArray][1] = cpfCnpj;
+						if (Cpf.verificaCpf(cpfCnpj)) {
+							getSubstituicao()[posArray][2] = Cpf.geraNovoCpf();
+						} else {
+							getSubstituicao()[posArray][2] = Cnpj.gerarNovoCnpj();
+						}
+						strEntrada.replace(60, 73, getSubstituicao()[posArray][2]);
+
+						linhaTratada = regrasMov(strEntrada.substring(0, 2),
+								strEntrada).toString();
+
+						posArray++;
+					}
+				} else {
+					linhaTratada = regrasMov(tipoMovimento, strEntrada)
+							.toString();
+				}
+			}
+		} else if (!strEntrada.substring(0, 1).matches("11")) {
+			System.out
+					.println("Linha não foi tratada, pois não possui regra para o tipo de movimento identificado");
+			linhaTratada = regrasMov(tipoMovimento, strEntrada).toString();
+		}
+		return linhaTratada;
+	}
+
+	/**
+	 * @param tipoMovimento
+	 * @param strEntrada
+	 * @return
+	 */
+	private static StringBuilder regrasMov(String tipoMovimento,
+			StringBuilder strEntrada) {
+		StringBuilder str = new StringBuilder(strEntrada);
+		if (tipoMovimento.matches("03")) {
+			str.replace(76, 88, "999999999999");
+
+			str.replace(281, 292, "99999999999");
+
+			str.replace(345, 369, "999999999999999999999999");
+
+			str.replace(511, 525, "99999999999999");
+
+			str.replace(531, 541, "9999999999");
+
+			str.replace(649, 662, "9999999999999");
+
+			str.replace(663, 668, "99999");
+
+			str.replace(671, 674, "0011");
+
+			str.replace(675, 684, "9999999999");
+
+			str.replace(685, 688, "0011");
+
+			str.replace(689, 698, "9999888888");
+
+			str.replace(699, 702, "9999");
+
+			str.replace(703, 706, "0011");
+
+			str.replace(707, 716, "9999888888");
+
+			str.replace(717, 776,
+					"emaildescaracterizado@caixa.gov.br                          ");
+		} else if (tipoMovimento.matches("09")) {
+			str.replace(82, 131,
+					"Logradouro do imovel                              ");
+
+			str.replace(132, 136, "999");
+
+			str.replace(137, 151, "Complemento    ");
+
+			str.replace(152, 165, "Bairro        ");
+
+			str.replace(166, 210, "Cidade                                      ");
+
+			str.replace(211, 212, "DF");
+
+			str.replace(213, 220, "70000000");
+
+			str.replace(231, 250, "                    ");
+
+			str.replace(364, 365, "00");
+
+			str.replace(366, 370, "00000");
+
+			str.replace(371, 375, "00000");
+
+			str.replace(376, 380, "00000");
+
+			str.replace(381, 387, "0000000");
+
+			str.replace(388, 394, "0000000");
+
+			str.replace(395, 397, "000");
+
+			str.replace(398, 399, "00");
+
+			str.replace(400, 403, "0000");
+
+			str.replace(404, 408, "00000");
+
+			str.replace(489, 495, "0000000");
+			
+			
+		} else if (tipoMovimento.matches("10")) {
+			str.replace(
+					62,
+					761,
+					"Esta é a descrição do imóvel                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ");
+		} else if (tipoMovimento.matches("11")) {
+			str.replace(94, 143,
+					"Logradouro da correspondência                     ");
+
+			str.replace(144, 148, "99999");
+
+			str.replace(149, 163, "Complemento    ");
+
+			str.replace(164, 177, "Bairro        ");
+
+			str.replace(178, 222,
+					"Cidade                                       ");
+
+			str.replace(223, 224, "DF");
+
+			str.replace(225, 232, "70000000");
+
+			str.replace(238, 298,
+					"emaildecorrespondencia@caixa.gov.br                         ");
+		} else {
+			tipoMovimento.matches("12");
+		}
+		return str;
+	}
+
+	/**
+	 * @param filecontent
+	 * @param arquivoDestino
+	 * @param tamanhoArquivo
+	 * @return
+	 */
+	public static String geraMassaTestes(InputStream filecontent,
+			String arquivoDestino, long tamanhoArquivo) {
+		try {
+			InputStreamReader r = new InputStreamReader(filecontent);
+			BufferedReader rfl = new BufferedReader(r);
+			BufferedReader cfl = new BufferedReader(r);
+			System.out.println("Encoding: " + r.getEncoding());
+
+			FileWriter fw = new FileWriter(arquivoDestino, true);
+			PrintWriter pw = new PrintWriter(fw);
+			FileOutputStream fos = new FileOutputStream(arquivoDestino);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos,
+					r.getEncoding()));
+
+			File fl = new File(arquivoDestino);
+			if (!fl.exists()) {
+				fl.createNewFile();
+				System.out.println("Arquivo criado com sucesso");
+			} else {
+				System.out.println("Arquivo ja existe");
+			}
+			String linha = rfl.readLine();
+			while (!linha.equals(null)) {
+				if (numberLine == 1) {
+					bw.write(linha);
+					bw.newLine();
+					bw.flush();
+					linha = rfl.readLine();
+				} else {
+					try {
+						if (!identificaQuebraLinha(linha)) {
+							bw.write(trataLinhaOrigem(linha));
+							bw.newLine();
+							bw.flush();
+							linha = rfl.readLine();
+						} else {
+							linha = rfl.readLine();
+							bw.flush();
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.out.println("Erro na gravação do arquivo");
+						message = "Erro ao gravar o arquivo em disco";
+					}
+				}
+				numberLine += 1;
+			}
+			pw.close();
+			bw.close();
+			r.close();
+			rfl.close();
+			closeQuietly(fos);
+			fos = null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			System.gc();
+			qtdeSubstituicao=0;
+			try{
+				Arrays.fill(substituicao, "");
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+			
+
+		}
+		return message;
+	}
+
+	static void closeQuietly(FileOutputStream out) {
+		try {
+			out.flush();
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static boolean identificaQuebraLinha(String linha) {
+		boolean ignorarLinha = false;
+		if (linha.substring(0, 1).equals("…")) {
+			ignorarLinha = true;
+		}
+		return ignorarLinha;
+	}
+
+	private static String modificaContaCredito(String conta) {
+		String[][] contaSubstituicao = new String[2][500];
+		String novaConta = null;
+		contaSubstituicao[0][0] = "0";
+		contaSubstituicao[0][1] = "0";
+		boolean icEncontrado = false;
+		int indice = 0;
+		if (numberLine > 1) {
+			for (int i = 0; i <= contaSubstituicao.length - 1; i++) {
+				if (conta.equals(contaSubstituicao[i][0])) {
+					novaConta = contaSubstituicao[i][1];
+					icEncontrado = true;
+					break;
+				}
+				indice = i;
+			}
+			if (!icEncontrado) {
+				contaSubstituicao[indice][0] = conta;
+				contaSubstituicao[indice][1] = geraNovaConta(conta.length());
+				novaConta = contaSubstituicao[indice][1];
+			}
+		}
+		return novaConta;
+	}
+
+	public static String geraNovaConta(int qtdePosicoes) {
+		String contaGerada = "";
+		for (int i = 0; i <= qtdePosicoes - 1; i++) {
+			contaGerada = contaGerada
+					+ String.valueOf((int) (Math.random() * 10.0D));
+		}
+		return contaGerada;
+	}
+
+	public static void criarDiretorioDestino() {
+		File theDir = new File("Desenvolvimento");
+		if (!theDir.exists()) {
+			System.out.println("creating directory: " + theDir.getName());
+			boolean result = false;
+			try {
+				theDir.mkdir();
+				result = true;
+			} catch (SecurityException se) {
+				se.printStackTrace();
+			}
+			if (result) {
+				System.out.println("Diretório criado");
+			}
+		}
+	}
+
+	public int getContAnalises() {
+		return this.contAnalises;
+	}
+
+	public void setContAnalises(int contAnalises) {
+		this.contAnalises = contAnalises;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		message = message;
+	}
+
+	public static String[][] getSubstituicao() {
+		return substituicao;
+	}
+
+	public void setSubstituicao(String[][] substituicao) {
+		this.substituicao = substituicao;
+	}
+}
