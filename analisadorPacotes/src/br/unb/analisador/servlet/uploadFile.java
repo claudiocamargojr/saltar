@@ -1,6 +1,5 @@
 package br.unb.analisador.servlet;
 
-import br.unb.analisador.io.Arquivo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,10 +47,6 @@ public class uploadFile extends HttpServlet {
 		
 		InputStream filecontent = file.getInputStream();
 
-		Arquivo.criarDiretorioDestino(); //Cria o diretorio de destino para gravacao do arquivo
-
-		Arquivo a = new Arquivo();
-		
 		//Determinar aqui o local de gravacao do arquivo que esta sendo submetido a upload
 		//a.(filecontent, "C://Desenvolvimento//" + filename
 		//		, tamanhoArquivo);

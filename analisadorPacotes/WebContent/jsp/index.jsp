@@ -9,7 +9,7 @@
 <meta Http-Equiv="Cache-Control" Content="no-cache">
 <meta Http-Equiv="Pragma" Content="no-cache">
 <meta Http-Equiv="Expires" Content="0">
-<title>SIOPI - Gerador de massa de testes</title>
+<title>Projeto SALTAR - Análise de arquivos de tráfego de rede</title>
 
 <!-- Bootstrap -->
 <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -130,9 +130,8 @@
 
 	<div class="bs-docs-header" id="content">
 		<div class="container">
-			<h1>Gerador de Massa de testes</h1>
-			<h2>Operações imobiliárias</h2>
-			<p>Massa de testes para reprodução de erros e falhas em produção.</p>
+			<h1>Análise de arquivos de captura de rede</h1>
+			<h2>Projeto SALTAR</h2>
 
 		</div>
 	</div>
@@ -142,11 +141,9 @@
 		<div id="form-group">
 			<h3>Instruções:</h3>
 			<p class="help-block">Informe o caminho do arquivo de origem para
-				geração da massa de testes.</p>
-			<p class="help-block">A massa de testes, por questões de
-				segurança, são geradas no mesmo caminho C:\Desenvolvimento\, sendo
-				que o nome do arquivo permanecerá o mesmo, porém, acrescentando-se o
-				sufixo "MT".</p>
+				ser analisado.</p>
+			<p class="help-block">Arquivos de resultado de análise, por questões de
+				segurança, são geradas no mesmo caminho C:\Desenvolvimento\, sendo que o nome do arquivo de resultado será o mesmo nome do arquivo de origem.</p>
 
 			<div class="panel panel-default">
 				<div class="panel-body">
@@ -181,7 +178,7 @@
 	<footer class="bs-docs-footer" role="contentinfo">
 		<div class="container">
 			<ul class="bs-docs-footer-links muted">
-				<li>Versão 3.0 - 18/11/2014</li>
+				<li>Versão 1.0-SNAPSHOT - 31/03/2015</li>
 			</ul>
 		</div>
 	</footer>
