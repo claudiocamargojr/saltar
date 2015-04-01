@@ -2,13 +2,16 @@ package br.unb.analisador.servlet;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.LineNumberReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -16,8 +19,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-
-import java.util.logging.*;
 
 /**
  * Servlet que realiza o upload de arquivos atrav[es do 
@@ -46,11 +47,16 @@ public class uploadFile extends HttpServlet {
 		String filename = getFilename(file);
 		
 		InputStream filecontent = file.getInputStream();
-
-		//Determinar aqui o local de gravacao do arquivo que esta sendo submetido a upload
-		//a.(filecontent, "C://Desenvolvimento//" + filename
-		//		, tamanhoArquivo);
-
+		
+		/* write the inputStream to a FileOutputStream
+		OutputStream outputStream = new FileOutputStream(new File("/home/gustavo/workspace/saltar/" + filename + "1")); 
+        int read = 0;
+        byte[] bytes = new byte[1024]; 
+        while ((read = filecontent.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, read);
+        }	
+        */
+		
 		response.setContentType("text/plain");
 		response.setCharacterEncoding("UTF-8");
 
