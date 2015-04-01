@@ -90,6 +90,14 @@
 			<artifactId>tomcat-api</artifactId>
 			<version>7.0.55</version>
 		</dependency>
+		
+		<dependency>
+    		<groupId>jnetpcap</groupId>
+    		<artifactId>jnetpcap</artifactId>
+    		<version>1.0</version>
+    		<scope>system</scope>
+    		<systemPath>${project.basedir}/src/resources/jnetpcap.jar</systemPath>
+		</dependency>
 
 
 	</dependencies>
