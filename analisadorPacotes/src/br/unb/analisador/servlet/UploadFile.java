@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import br.unb.analisador.protocols.ExtractProtocolo;
+
 /**
  * Servlet que realiza o upload de arquivos atrav[es do 
  * 
@@ -28,7 +30,7 @@ import javax.servlet.http.Part;
  */
 @WebServlet({ "/upload" })
 @MultipartConfig
-public class uploadFile extends HttpServlet {
+public class UploadFile extends HttpServlet {
 	private static FileHandler fh;
 	private static Logger logger = Logger.getLogger("br.gov.caixa.peopi.servlet");
 	
@@ -43,12 +45,17 @@ public class uploadFile extends HttpServlet {
 		
 		Part file = request.getPart("inputFile");
 		long tamanhoArquivo = file.getSize();
-
+		
+		
 		String filename = getFilename(file);
 		
-		InputStream filecontent = file.getInputStream();
+		ExtractProtocolo extract = new ExtractProtocolo(filename);
+		
+		extract.extractIp();		
+		
 		
 		/* write the inputStream to a FileOutputStream
+		InputStream filecontent = file.getInputStream();
 		OutputStream outputStream = new FileOutputStream(new File("/home/gustavo/workspace/saltar/" + filename + "1")); 
         int read = 0;
         byte[] bytes = new byte[1024]; 
