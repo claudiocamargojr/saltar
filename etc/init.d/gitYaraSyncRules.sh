@@ -38,7 +38,7 @@ cd $BASEDIR
 git pull
 
 #realiza a copia das assinaturas da comunidade para o Cuckoo local
-cp -rf /opt/gitYaraCommunity/yara-rules/malware-families /opt/cuckoo/cuckoo/data/yara/
+cp -rf /opt/gitYaraCommunity/yara-rules/malware-families /opt/cuckoo_saltar/data/yara/
 
 echo "include \"/opt/cuckoo_saltar/data/yara/binaries/shellcodes.yar\"" > /opt/cuckoo_saltar/data/yara/index_binaries.yar
 echo "include \"/opt/cuckoo_saltar/data/yara/binaries/embedded.yar\"" >> /opt/cuckoo_saltar/data/yara/index_binaries.yar
