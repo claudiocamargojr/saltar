@@ -4,23 +4,24 @@
 import json
 import operator
 import sys
+from name_generator import Guesser
 import os
 CHARS = ['/', ':','-', '!', '_']
 
 def parse(json_file):
+	g = Guesser()
 	f = open(json_file, 'r')
 	s = json.load(f)
-	#jsondecoder = json.JSONDecoder()
-	#jsonobject = jsondecoder.decode(s)
+
 
 	tags = {}
 	total = 0
-	fname = s['filename']
-	del s['filename']
-	del s['Most Common Class']
+	fname = json_file[:-5]
+
 
 	out = {}
-	out['filename'] = fname
+	noPathFileName = os.path.basename(json_file)
+	out['filename'] = noPathFileName[:-4]
 	out['analysis'] = s
 
 	for key in s:
@@ -35,7 +36,7 @@ def parse(json_file):
 
 		for word in words:
 			total += 1
-			if tags.has_key(word):
+			if word in tags:
 				tags[word] += 1
 			else:
 				tags[word] = 1
@@ -44,11 +45,14 @@ def parse(json_file):
 	
 	sorted_tags = [ (x[0], float(x[1]) / total) for x in (sorted(tags.items(), key=operator.itemgetter(1)))]
 	
-#	for tag in sorted_tags:
-#		print tag
 	out['tags'] = [x[0] for x in sorted_tags[-5:] ]
 	out['tags_weight'] = [x[1] for x in sorted_tags[-5:] ]
-	print json.dumps(out, indent=2)
+	#Adding the ml classification
+	out['ml_classification'] = g.guess_everything(s)
+
+
+	print (json.dumps(out, indent=2))
+
 
 
 if __name__ == "__main__":
